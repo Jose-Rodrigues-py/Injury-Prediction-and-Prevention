@@ -11,6 +11,7 @@ class Athlete(Base):
     name: Mapped[str]
     age: Mapped[int]
     height: Mapped[int]
+    hashed_pwd: Mapped[str]
     # table relationships
     health_metrics: Mapped[list["HealthMetrics"]] = relationship(back_populates="athlete", cascade="all, delete-orphan")
     workouts: Mapped[list["Workout"]] = relationship(back_populates="athlete", cascade="all, delete-orphan")
