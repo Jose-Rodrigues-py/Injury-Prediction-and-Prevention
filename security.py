@@ -1,6 +1,7 @@
 from passlib.context import CryptContext
 from datetime import datetime, timezone, timedelta
 from os import getenv
+from dotenv import load_dotenv
 from database import get_db
 from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -9,13 +10,16 @@ from sqlalchemy import select
 from models import Athlete
 import jwt  
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+load_dotenv()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/signin")
 
 key = getenv("SECRET_KEY")
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 
 def hash_password(pwd: str): 
+    print(f"LENGTH: {len(pwd)}, VALUE: {pwd!r}")
     return pwd_context.hash(pwd)
 
 def verify(plain_pwd: str, hashed: str) -> bool:
@@ -33,9 +37,10 @@ def decode_token(token: str) -> dict:
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> Athlete: 
     try:
         check = decode_token(token)
-    except Exception:
+    except Exception as e:
+        print(f"DECODE ! FAILED: {type(e).__name__}: {e}")
         raise HTTPException(status_code=401, detail="invalid token")
-    athlete_id = check["sub"]
+    athlete_id = int(check["sub"])
     user = await db.execute(
         select(Athlete).where(Athlete.id == athlete_id)
     )

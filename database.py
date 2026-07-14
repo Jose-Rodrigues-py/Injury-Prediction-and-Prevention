@@ -1,4 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import DeclarativeBase
+
+class Base(DeclarativeBase):
+    pass
 
 DATABASE_URL = "postgresql+asyncpg://postgres:devpass@localhost:5432/athletelog"
 
