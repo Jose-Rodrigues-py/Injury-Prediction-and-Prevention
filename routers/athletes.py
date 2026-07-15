@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, EmailStr
-from security import create_token, hash_password, verify, get_current_user
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from security import get_current_user
 from database import get_db
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import Athlete
+from cache import redis_client
 
 router = APIRouter()
 
@@ -23,6 +23,7 @@ async def add_info(data: addInfo, athlete: Athlete = Depends(get_current_user), 
     
     await db.commit()
     await db.refresh(athlete)
+    await redis_client.delete(f"id:{athlete.id}")
     
     return {"message": "new information added",
             "data": {"age": athlete.age, "height": athlete.height}}
