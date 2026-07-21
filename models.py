@@ -10,6 +10,8 @@ class Athlete(Base):
     email: Mapped[str]
     age: Mapped[int | None] = mapped_column(nullable = True)
     height: Mapped[int | None] = mapped_column(nullable = True)
+    training_age_years: Mapped[int]
+    baseline_load: Mapped[int]
     hashed_pwd: Mapped[str]
     # table relationships
     health_metrics: Mapped[list["HealthMetrics"]] = relationship(back_populates="athlete", cascade="all, delete-orphan")
