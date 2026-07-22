@@ -94,7 +94,7 @@ def simulate_athlete(athlete: Athlete, n_days: int) -> pd.DataFrame:
             intensity = int(np.clip(rpe + rng.integers(-1, 2), 1, 10))
             speed = round(max(rng.normal(10, 2), 4), 1)  # km/h, rough proxy
             avg_hr = int(np.clip(rng.normal(150, 15), 90, 200))
-            session_type = rng.choice(["easy_run", "tempo", "intervals", "long_run"])
+            session_type = rng.choice(["easy_run", "tempo", "intervals", "long_run", "recovery", "race"])
 
             daily_load = duration * rpe * multiplier
             daily_load = daily_load * (athlete.baseline_load / 400)  # scale to this athlete's own range
@@ -185,7 +185,7 @@ def main():
     df = pd.concat(all_rows, ignore_index=True)
     df = inject_messiness(df)
 
-    out_path = "sentinel_synthetic_training_data.csv"
+    out_path = "sentinel_data.csv"
     df.to_csv(out_path, index=False)
     print(f"Wrote {len(df)} rows across {N_ATHLETES} athletes to {out_path}")
     print(f"Injury rate: {df['injured'].mean():.3%}")

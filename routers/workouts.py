@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from enum import Enum
 from security import get_current_user
 from database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,13 +10,21 @@ from datetime import datetime, timezone, date
 
 router = APIRouter()
 
+class SessionEnum(str, Enum): 
+    recovery ='recovery'
+    easy = "easy_run"
+    long = "long_run"
+    tempo = "tempo"
+    intervals = "intervals"
+    race = "race"
+
 class Data(BaseModel): 
-    session_type: str # show options to the user, no need to write
-    duration: int
-    intensity: int
+    session_type: SessionEnum # show options to the user, no need to write
+    duration: int = Field(ge=0 , description="Duration in minutes")
+    intensity: int = Field(gt=0, le=10)
     speed: float
     average_hr: int
-    rpe: int
+    rpe: int = Field(ge=0, le=10)
 
 @router.post("/workouts/addwourkout")
 async def add_workout(data: Data, day: date = datetime.now(timezone.utc), athlete: Athlete = Depends(get_current_user), db: AsyncSession = Depends(get_db)):

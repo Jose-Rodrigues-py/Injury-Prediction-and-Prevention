@@ -11,4 +11,10 @@ router = APIRouter()
 async def predict(user: Athlete = Depends(get_current_user), db: AsyncSession = Depends(get_db)): 
     user_id = user.id
     result = await predict_injury_risk(user_id, db)
-    return result
+    return {"athlete_id": result["athlete_id"],
+            "healthy": 1 - result["injury_risk_probability"],
+            "acwr": result["acwr"],
+            "tsb": result["tsb"],
+            "ctl": result["ctl"],
+            "atl": result["atl"]
+            }

@@ -10,19 +10,19 @@ must match, column for column, what train.py expects:
 """
 
 from datetime import date, timedelta
-import joblib
-import pandas as pd
+from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import Workout, Athlete
 from features import compute_rolling_features
+import joblib
+import pandas as pd
 
-MODEL_PATH = "injury_risk_model.pkl"          
-ENCODER_PATH = "session_type_encoder.pkl"
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BASE_DIR / "ML"
 
-model = joblib.load(MODEL_PATH)
-encoder = joblib.load(ENCODER_PATH)
-
+model = joblib.load(MODEL_DIR / "injury_risk_model.pkl")
+encoder = joblib.load(MODEL_DIR / "session_type_encoder.pkl")
 
 async def predict_injury_risk(user_id: int, db: AsyncSession) -> dict | None:
     today = date.today()
