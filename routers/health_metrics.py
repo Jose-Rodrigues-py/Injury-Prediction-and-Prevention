@@ -17,8 +17,6 @@ class Data(BaseModel):
     vo2_max: int | None
     lt: int | None
 
-# missing chronic training load..
-
 @router.post("/metrics/add")
 async def add_metrics(info: Data, athlete: Athlete = Depends(get_current_user), db: AsyncSession = Depends(get_db)): 
     to_add = HealthMetrics(

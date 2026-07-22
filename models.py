@@ -10,9 +10,9 @@ class Athlete(Base):
     email: Mapped[str]
     age: Mapped[int | None] = mapped_column(nullable = True)
     height: Mapped[int | None] = mapped_column(nullable = True)
-    training_age_years: Mapped[int]
-    baseline_load: Mapped[int]
-    hashed_pwd: Mapped[str]
+    training_age_years: Mapped[int | None] = mapped_column(nullable=True)
+    baseline_load: Mapped[int | None] = mapped_column(nullable=True)
+    hashed_pwd: Mapped[str] 
     # table relationships
     health_metrics: Mapped[list["HealthMetrics"]] = relationship(back_populates="athlete", cascade="all, delete-orphan")
     workouts: Mapped[list["Workout"]] = relationship(back_populates="athlete", cascade="all, delete-orphan")
@@ -27,7 +27,6 @@ class HealthMetrics(Base):
     weight: Mapped[float | None] = mapped_column(Float, nullable=True)
     hrv: Mapped[int | None] = mapped_column(nullable = True)
     mood: Mapped[int | None] = mapped_column(nullable = True)
-    ctl: Mapped[float | None] = mapped_column(nullable= True) # chronic training load
     vo2_max: Mapped[float | None] = mapped_column(Float, nullable=True)
     lt: Mapped[float | None] = mapped_column(Float, nullable=True) # lactate threshold
 
