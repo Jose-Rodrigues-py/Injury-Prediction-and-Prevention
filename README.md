@@ -43,6 +43,37 @@ SummerProject/
   |-security.py
   |-worker.py
 
+# Tech Stack
+
+## Backend
+
+Python
+FastAPI
+SQLAlchemy
+Alembic
+Arq
+
+## Database
+
+Supabase (PostgreSQL)
+Redis
+
+## Machine Learning
+
+scikit-learn
+pandas
+NumPy
+
+## AI
+
+RAG
+LLM API
+Vector search
+
+## Infrastructure
+
+Docker
+Git
   
   
 
