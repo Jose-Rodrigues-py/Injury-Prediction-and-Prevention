@@ -55,3 +55,12 @@ class Race(Base):
     goal: Mapped[str]
 
     athlete: Mapped["Athlete"] = relationship(back_populates="races")
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"))
+    content: Mapped[str]
+    created_at: Mapped[date] = mapped_column(default=date.today)
+    read: Mapped[bool] = mapped_column(default=False)
