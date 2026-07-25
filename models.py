@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, ForeignKey, Float
-from datetime import date
+from datetime import date, datetime
 from database import Base
 
 class Athlete(Base): 
@@ -62,5 +62,5 @@ class Message(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"))
     content: Mapped[str]
-    created_at: Mapped[date] = mapped_column(default=date.today)
-    read: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    role: Mapped[str]

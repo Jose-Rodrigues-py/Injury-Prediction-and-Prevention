@@ -5,11 +5,10 @@ from predict import predict_injury_risk
 from database import AsyncSessionLocal
 from cache import redis_client
 from sqlalchemy import select
-from rag import search
+from AI.rag import search
 from models import Workout, Race, HealthMetrics, Message
 from datetime import date, datetime
 import json
-
 
 async def make_prediction(athlete_id: int): 
     async with AsyncSessionLocal() as db:

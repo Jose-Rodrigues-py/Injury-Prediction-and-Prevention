@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from enum import Enum
 from security import get_current_user
@@ -6,7 +6,7 @@ from database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from models import Athlete, Workout
-from datetime import datetime, timezone, date
+from datetime import date
 
 router = APIRouter()
 
@@ -27,10 +27,10 @@ class Data(BaseModel):
     rpe: int = Field(ge=0, le=10)
 
 @router.post("/workouts/addwourkout")
-async def add_workout(data: Data, day: date = datetime.now(timezone.utc), athlete: Athlete = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def add_workout(data: Data, request: Request, athlete: Athlete = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     to_add = Workout(
         session_type = data.session_type,
-        date = day,
+        date = date.today(),
         athlete_id = athlete.id,
         duration = data.duration,
         intensity = data.intensity,
@@ -42,11 +42,13 @@ async def add_workout(data: Data, day: date = datetime.now(timezone.utc), athlet
     db.add(to_add)
     await db.commit()
     await db.refresh(to_add)
+    # add line here?? (prevent stale entries in cache)
+    await request.app.state.arq_pool.enqueue_job("run_prediction", athlete.id)
 
     return {"message": "new workout added",
             "data": {"session_type": data.session_type,
                     "athlete_id": athlete.id,
-                    "date": day,
+                    "date": date.today(),
                     "duration": data.duration,
                     "intensity": data.intensity,
                     "speed": data.speed,

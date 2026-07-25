@@ -1,9 +1,11 @@
 """
 main loop for the agent
 """
-import ollama
-from rag import search
-from tools import access_db, make_prediction, get_message_history, save_message
+from ollama import AsyncClient
+from AI.rag import search
+from AI.tools import access_db, make_prediction, get_message_history, save_message
+
+client = AsyncClient()
 
 SYSTEM_PROMPT = """
 You are a running personal coach, whose main objective is to increase athlete's performance by preventing them from getting injured
@@ -45,9 +47,10 @@ async def run_agent(message: str | None, user_id: int, db):
             {"role": "system", "content": f"User profile:\n{context}"},
             {"role": "system", "content": f"Prediction:\n{prediction}"},*history,
         ]
-        response = await ollama.chat(
+        response = await client.chat(
                 model='qwen2.5:3b',
-                messages= messages    
+                messages= messages,
+                tools = [search]
         )
         await save_message(user_id, "assistant", response.message.content)
         return response
@@ -59,11 +62,12 @@ async def run_agent(message: str | None, user_id: int, db):
             {"role": "system", "content": f"Prediction:\n{prediction}"},*history,
             {"role": "user", "content": message}
         ]
-        response = await ollama.chat(
+
+        response = await client.chat(
                         model='qwen2.5:3b',
-                        messages= messages    
+                        messages= messages,
+                        tools = [search] 
                 )
         
         await save_message(user_id, "assistant", response.message.content)
         return response
-        
