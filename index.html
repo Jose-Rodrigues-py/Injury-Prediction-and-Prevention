@@ -1,0 +1,1190 @@
+<!-- 100% CLAUDE GENERATED, fixed by me (wasn't working from the beginning)-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sentinel — Training Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     CONFIG: change this if your FastAPI backend runs elsewhere
+     ============================================================ -->
+<script>
+  window.SENTINEL_API_BASE = "http://localhost:8000";
+</script>
+
+<style>
+  :root {
+    --clay: #C1440E;
+    --clay-dark: #9A3509;
+    --charcoal: #1B1D1F;
+    --chalk: #F6F3EC;
+    --chalk-dim: #ECE7DA;
+    --hairline: #DAD4C5;
+    --ink: #1B1D1F;
+    --ink-soft: #6B675E;
+    --moss: #3A7D44;
+    --moss-bg: #E7F0E4;
+    --amber: #B4790A;
+    --amber-bg: #F7EBD3;
+    --signal: #A32A20;
+    --signal-bg: #F5E1DE;
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--chalk);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--charcoal);
+    margin: 0;
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+  }
+
+  button {
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+  }
+
+  input, select, textarea {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+  }
+
+  /* ---------- Auth screen ---------- */
+  .auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        var(--chalk) 0px, var(--chalk) 78px,
+        var(--hairline) 78px, var(--hairline) 79px
+      );
+    padding: 24px;
+  }
+
+  .auth-card {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 380px;
+    padding: 36px 32px;
+    box-shadow: 0 1px 0 rgba(27,29,31,0.03);
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .brand-mark {
+    width: 10px; height: 10px;
+    background: var(--clay);
+    display: inline-block;
+    border-radius: 50%;
+    transform: translateY(-1px);
+  }
+
+  .brand-title {
+    font-size: 26px;
+    letter-spacing: 0.06em;
+  }
+
+  .subhead {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--chalk);
+    color: var(--ink);
+  }
+
+  .field input:focus, .field select:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--clay);
+    outline-offset: 1px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--clay);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--clay-dark); }
+  .btn-primary:disabled { background: var(--hairline); color: var(--ink-soft); cursor: not-allowed; }
+
+  .btn-link {
+    background: none;
+    border: none;
+    color: var(--clay);
+    font-size: 13px;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .switch-row {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .error-banner {
+    background: var(--signal-bg);
+    color: var(--signal);
+    border: 1px solid var(--signal);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  /* ---------- App shell ---------- */
+  .shell {
+    display: grid;
+    grid-template-columns: 208px 1fr;
+    min-height: 100vh;
+  }
+
+  .rail {
+    background: var(--charcoal);
+    color: var(--chalk);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rail-brand {
+    padding: 0 22px 22px 22px;
+    border-bottom: 1px solid #33363a;
+    margin-bottom: 8px;
+  }
+
+  .rail-brand .brand-title { color: var(--chalk); font-size: 20px; }
+  .rail-brand .brand-mark { background: var(--clay); }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 22px;
+    color: #C9C6BE;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    background: none;
+    border-top: none; border-right: none; border-bottom: none;
+    text-align: left;
+    width: 100%;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .nav-item:hover { background: #232529; color: #fff; }
+  .nav-item.active {
+    color: #fff;
+    border-left-color: var(--clay);
+    background: #232529;
+  }
+
+  .nav-lane-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--clay);
+    width: 16px;
+  }
+
+  .rail-footer {
+    margin-top: auto;
+    padding: 16px 22px 0 22px;
+    border-top: 1px solid #33363a;
+  }
+
+  .signout {
+    background: none; border: none; color: #918D82;
+    font-size: 12px; padding: 0; text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .main {
+    padding: 32px 40px 60px 40px;
+    max-width: 920px;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .risk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .risk-pill.low { background: var(--moss-bg); color: var(--moss); }
+  .risk-pill.moderate { background: var(--amber-bg); color: var(--amber); }
+  .risk-pill.high { background: var(--signal-bg); color: var(--signal); }
+  .risk-pill.unknown { background: var(--chalk-dim); color: var(--ink-soft); }
+
+  .risk-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    margin-bottom: 18px;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Signature element: ACWR load line ---------- */
+  .load-line-wrap { margin-top: 6px; }
+
+  .load-line-track {
+    position: relative;
+    height: 34px;
+    display: flex;
+    border-radius: var(--radius);
+    overflow: visible;
+  }
+
+  .zone {
+    height: 100%;
+    position: relative;
+  }
+  .zone.under { background: #DDE3E8; }
+  .zone.sweet { background: var(--moss-bg); }
+  .zone.elevated { background: var(--amber-bg); }
+  .zone.spike { background: var(--signal-bg); }
+
+  .zone-label {
+    position: absolute;
+    bottom: -20px;
+    left: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .load-marker {
+    position: absolute;
+    top: -14px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: left 0.4s ease;
+  }
+
+  .load-marker-value {
+    font-size: 13px;
+    background: var(--charcoal);
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: var(--radius);
+    margin-bottom: 2px;
+    white-space: nowrap;
+  }
+
+  .load-marker-tick {
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--charcoal);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 36px;
+  }
+
+  .stat {
+    border-left: 2px solid var(--hairline);
+    padding-left: 12px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    color: var(--charcoal);
+  }
+
+  /* ---------- Forms ---------- */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid .field.full { grid-column: 1 / -1; }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+
+  .success-banner {
+    background: var(--moss-bg);
+    color: var(--moss);
+    border: 1px solid var(--moss);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--chalk-dim); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ---------- Chat ---------- */
+  .chat-window {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 240px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding: 4px 2px;
+    margin-bottom: 16px;
+  }
+
+  .msg {
+    max-width: 78%;
+    padding: 11px 14px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--charcoal);
+    color: #fff;
+  }
+  .msg.assistant {
+    align-self: flex-start;
+    background: var(--chalk-dim);
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+  }
+  .msg-role {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 10px;
+  }
+  .chat-input-row textarea {
+    flex: 1;
+    resize: none;
+    padding: 11px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--chalk);
+    font-size: 14px;
+    min-height: 46px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 720px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail { flex-direction: row; overflow-x: auto; padding: 12px; }
+    .rail-brand, .rail-footer { display: none; }
+    .nav-item { white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
+    .nav-item.active { border-bottom-color: var(--clay); }
+    .main { padding: 20px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+const API_BASE = window.SENTINEL_API_BASE;
+
+// ---------------------------------------------------------------
+// API helper: every authenticated call flows through here so the
+// token header and error handling live in exactly one place.
+// ---------------------------------------------------------------
+function useApi(token, onAuthExpired) {
+  return useCallback(async (path, options = {}) => {
+    const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+    if (token) headers["Authorization"] = "Bearer " + token;
+
+    let res;
+    try {
+      res = await fetch(API_BASE + path, { ...options, headers });
+    } catch (networkErr) {
+      throw new Error(
+        "Can't reach the backend at " + API_BASE + ". Is uvicorn running, and is CORS enabled?"
+      );
+    }
+
+    if (res.status === 401) {
+        if (token) {    
+            onAuthExpired && onAuthExpired();
+            throw new Error("Session expired. Please sign in again.");
+        }
+    }
+
+    let body = null;
+    const text = await res.text();
+    try { body = text ? JSON.parse(text) : null; } catch (e) { body = text; }
+
+    if (!res.ok) {
+      const detail = (body && body.detail) ? body.detail : (typeof body === "string" ? body : "Request failed.");
+      throw new Error(detail);
+    }
+    return body;
+  }, [token, onAuthExpired]);
+}
+
+// ---------------------------------------------------------------
+// Auth screen — sign in / sign up
+// ---------------------------------------------------------------
+function AuthScreen({ onAuthed }) {
+  const [mode, setMode] = useState("signin"); // "signin" | "signup"
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const api = useApi(null, null);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+        if (mode === "signup") {
+            await api("/signup", {
+                method: "POST",
+                body: JSON.stringify({ email, name, password }),
+            });
+            const signinRes = await api("/signin", {
+                method: "POST",
+                body: JSON.stringify({ email, password }),
+            });
+            onAuthed(signinRes.access_token);  
+        } 
+        else {
+            const res = await api("/signin", {
+                method: "POST",
+                body: JSON.stringify({ email, password }),
+            });
+            onAuthed(res.access_token);     
+        }
+      }
+    catch (err) {
+      setError(err.message);
+    } 
+    finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="brand-row">
+          <span className="brand-mark"></span>
+          <span className="display brand-title">Sentinel</span>
+        </div>
+        <div className="subhead">Training load, watched daily.</div>
+
+        {error && <div className="error-banner">{error}</div>}
+
+        <form onSubmit={submit}>
+          {mode === "signup" && (
+            <div className="field">
+              <label htmlFor="name">Name</label>
+              <input id="name" value={name} onChange={e => setName(e.target.value)} required />
+            </div>
+          )}
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          </div>
+          <button className="btn-primary" disabled={loading} type="submit">
+            {loading ? <span className="spinner"></span> : (mode === "signup" ? "Create account" : "Sign in")}
+          </button>
+        </form>
+
+        <div className="switch-row">
+          {mode === "signin" ? (
+            <span>New here? <button className="btn-link" onClick={() => { setMode("signup"); setError(""); }}>Create an account</button></span>
+          ) : (
+            <span>Already training with us? <button className="btn-link" onClick={() => { setMode("signin"); setError(""); }}>Sign in</button></span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------
+// ACWR load line -- the signature visual.
+// Zones: <0.8 undertrained, 0.8-1.3 sweet spot, 1.3-1.5 elevated, >1.5 spike
+// ---------------------------------------------------------------
+function LoadLine({ acwr }) {
+  const max = 2.2;
+  const clampedAcwr = acwr == null ? null : Math.max(0, Math.min(acwr, max));
+  const pct = clampedAcwr == null ? null : (clampedAcwr / max) * 100;
+
+  const zones = [
+    { key: "under", from: 0, to: 0.8, label: "Undertrained" },
+    { key: "sweet", from: 0.8, to: 1.3, label: "Sweet spot" },
+    { key: "elevated", from: 1.3, to: 1.5, label: "Elevated" },
+    { key: "spike", from: 1.5, to: max, label: "Spike risk" },
+  ];
+
+  return (
+    <div className="load-line-wrap">
+      <div className="load-line-track">
+        {zones.map(z => (
+          <div
+            key={z.key}
+            className={"zone " + z.key}
+            style={{ width: ((z.to - z.from) / max) * 100 + "%" }}
+          >
+            <span className="zone-label">{z.label}</span>
+          </div>
+        ))}
+        {pct != null && (
+          <div className="load-marker" style={{ left: pct + "%" }}>
+            <span className="load-marker-value mono">{acwr.toFixed(2)}</span>
+            <span className="load-marker-tick"></span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function riskBand(p) {
+  if (p == null) return { cls: "unknown", label: "No data yet" };
+  if (p < 0.34) return { cls: "low", label: "Low risk" };
+  if (p < 0.67) return { cls: "moderate", label: "Moderate risk" };
+  return { cls: "high", label: "High risk" };
+}
+
+// ---------------------------------------------------------------
+// Dashboard
+// ---------------------------------------------------------------
+function Dashboard({ api }) {
+  const [prediction, setPrediction] = useState(null);
+  const [latestMessage, setLatestMessage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [pred, hist] = await Promise.allSettled([
+        api("/predict", { method: "POST" }),
+        api("/history", { method: "GET" }),
+      ]);
+      if (pred.status === "fulfilled") setPrediction(pred.value);
+      if (hist.status === "fulfilled" && typeof hist.value === "object") setLatestMessage(hist.value);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [api]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const probability = prediction ? prediction.injury_risk_probability : null;
+  const band = riskBand(probability);
+
+  return (
+    <div>
+      {error && <div className="error-banner">{error}</div>}
+
+      <div className="card">
+        <div className="card-title display">Today's load</div>
+        {loading ? (
+          <div className="empty-state">Reading training history…</div>
+        ) : prediction ? (
+          <React.Fragment>
+            <LoadLine acwr={prediction.acwr} />
+            <div className="stat-grid">
+              <div className="stat">
+                <div className="stat-label">Injury risk</div>
+                <div className={"stat-value mono"}>{(probability * 100).toFixed(1)}%</div>
+              </div>
+              <div className="stat">
+                <div className="stat-label">ACWR</div>
+                <div className="stat-value mono">{prediction.acwr?.toFixed(2)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-label">Form (TSB)</div>
+                <div className="stat-value mono">{prediction.tsb?.toFixed(1)}</div>
+              </div>
+              <div className="stat">
+                <div className="stat-label">Fitness (CTL)</div>
+                <div className="stat-value mono">{prediction.ctl?.toFixed(1)}</div>
+              </div>
+            </div>
+          </React.Fragment>
+        ) : (
+          <div className="empty-state">
+            No prediction yet. Log a workout first — Sentinel needs a little training history to read your load.
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-title display">From your coach</div>
+        {latestMessage && latestMessage.content ? (
+          <div className="msg assistant" style={{ maxWidth: "100%" }}>
+            <span className="msg-role">Sentinel · {latestMessage.created_at ? new Date(latestMessage.created_at).toLocaleString() : ""}</span>
+            {latestMessage.content}
+          </div>
+        ) : (
+          <div className="empty-state">Nothing yet — log a workout or start a chat to hear from your coach.</div>
+        )}
+      </div>
+
+      <button className="btn-link" onClick={load}>Refresh</button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------
+// Reusable log-forms
+// ---------------------------------------------------------------
+const SESSION_TYPES = ["easy_run", "tempo", "intervals", "long_run", "race", "recovery"];
+
+function WorkoutForm({ api }) {
+  const [form, setForm] = useState({
+    session_type: "easy_run", duration: "", intensity: "", speed: "", average_hr: "", rpe: "",
+  });
+  const [status, setStatus] = useState({ type: null, msg: "" });
+  const [loading, setLoading] = useState(false);
+
+  function set(field, value) { setForm(f => ({ ...f, [field]: value })); }
+
+  async function submit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setStatus({ type: null, msg: "" });
+    try {
+      await api("/workouts/addwourkout", {
+        method: "POST",
+        body: JSON.stringify({
+          session_type: form.session_type,
+          duration: Number(form.duration),
+          intensity: Number(form.intensity),
+          speed: Number(form.speed),
+          average_hr: Number(form.average_hr),
+          rpe: Number(form.rpe),
+        }),
+      });
+      setStatus({ type: "success", msg: "Workout logged. Sentinel is recalculating your risk in the background." });
+      setForm({ session_type: "easy_run", duration: "", intensity: "", speed: "", average_hr: "", rpe: "" });
+    } catch (err) {
+      setStatus({ type: "error", msg: err.message });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="card">
+      <div className="card-title display">Log a workout</div>
+      {status.type === "success" && <div className="success-banner">{status.msg}</div>}
+      {status.type === "error" && <div className="error-banner">{status.msg}</div>}
+      <form onSubmit={submit}>
+        <div className="form-grid">
+          <div className="field">
+            <label>Session type</label>
+            <select value={form.session_type} onChange={e => set("session_type", e.target.value)}>
+              {SESSION_TYPES.map(t => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Duration (min)</label>
+            <input type="number" min="0" required value={form.duration} onChange={e => set("duration", e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Intensity (1–10)</label>
+            <input type="number" min="1" max="10" required value={form.intensity} onChange={e => set("intensity", e.target.value)} />
+          </div>
+          <div className="field">
+            <label>RPE (0–10)</label>
+            <input type="number" min="0" max="10" required value={form.rpe} onChange={e => set("rpe", e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Speed (km/h)</label>
+            <input type="number" step="0.1" min="0" required value={form.speed} onChange={e => set("speed", e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Average heart rate</label>
+            <input type="number" min="0" required value={form.average_hr} onChange={e => set("average_hr", e.target.value)} />
+          </div>
+        </div>
+        <button className="btn-primary" style={{ width: "auto", padding: "11px 24px", marginTop: "8px" }} disabled={loading}>
+          {loading ? <span className="spinner"></span> : "Log workout"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function MetricsForm({ api }) {
+  const [form, setForm] = useState({ resting_hr: "", weight: "", hrv: "", mood: "", vo2_max: "", lt: "" });
+  const [status, setStatus] = useState({ type: null, msg: "" });
+  const [loading, setLoading] = useState(false);
+
+  function set(field, value) { setForm(f => ({ ...f, [field]: value })); }
+
+  async function submit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setStatus({ type: null, msg: "" });
+    try {
+      const payload = {};
+      Object.entries(form).forEach(([k, v]) => { if (v !== "") payload[k] = Number(v); });
+      await api("/metrics/add", { method: "POST", body: JSON.stringify(payload) });
+      setStatus({ type: "success", msg: "Health metrics saved for today." });
+      setForm({ resting_hr: "", weight: "", hrv: "", mood: "", vo2_max: "", lt: "" });
+    } catch (err) {
+      setStatus({ type: "error", msg: err.message });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const fields = [
+    ["resting_hr", "Resting HR"], ["weight", "Weight (kg)"], ["hrv", "HRV"],
+    ["mood", "Mood (1–5)"], ["vo2_max", "VO2 max"], ["lt", "Lactate threshold"],
+  ];
+
+  return (
+    <div className="card">
+      <div className="card-title display">Log health metrics</div>
+      {status.type === "success" && <div className="success-banner">{status.msg}</div>}
+      {status.type === "error" && <div className="error-banner">{status.msg}</div>}
+      <form onSubmit={submit}>
+        <div className="form-grid">
+          {fields.map(([key, label]) => (
+            <div className="field" key={key}>
+              <label>{label}</label>
+              <input type="number" step="0.1" value={form[key]} onChange={e => set(key, e.target.value)} />
+            </div>
+          ))}
+        </div>
+        <button className="btn-primary" style={{ width: "auto", padding: "11px 24px", marginTop: "8px" }} disabled={loading}>
+          {loading ? <span className="spinner"></span> : "Save metrics"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function RaceForm({ api }) {
+  const [form, setForm] = useState({ distance: "", goal: "", date: "" });
+  const [status, setStatus] = useState({ type: null, msg: "" });
+  const [loading, setLoading] = useState(false);
+  const [races, setRaces] = useState([]);
+
+  function set(field, value) { setForm(f => ({ ...f, [field]: value })); }
+
+  const loadRaces = useCallback(async () => {
+    try {
+      const list = await api("/races/myraces", { method: "GET" });
+      if (Array.isArray(list)) setRaces(list);
+    } catch (err) { /* non-fatal on this view */ }
+  }, [api]);
+
+  useEffect(() => { loadRaces(); }, [loadRaces]);
+
+  async function submit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setStatus({ type: null, msg: "" });
+    try {
+      await api("/races/addrace", {
+        method: "POST",
+        body: JSON.stringify({
+          distance: Number(form.distance),
+          goal: form.goal || null,
+          date: form.date,
+        }),
+      });
+      setStatus({ type: "success", msg: "Race added." });
+      setForm({ distance: "", goal: "", date: "" });
+      loadRaces();
+    } catch (err) {
+      setStatus({ type: "error", msg: err.message });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-title display">Add a race</div>
+        {status.type === "success" && <div className="success-banner">{status.msg}</div>}
+        {status.type === "error" && <div className="error-banner">{status.msg}</div>}
+        <form onSubmit={submit}>
+          <div className="form-grid">
+            <div className="field">
+              <label>Distance (km)</label>
+              <input type="number" step="0.1" min="0" required value={form.distance} onChange={e => set("distance", e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Date</label>
+              <input type="date" required value={form.date} onChange={e => set("date", e.target.value)} />
+            </div>
+            <div className="field full">
+              <label>Goal (optional)</label>
+              <input placeholder="e.g. sub 3:00:00" value={form.goal} onChange={e => set("goal", e.target.value)} />
+            </div>
+          </div>
+          <button className="btn-primary" style={{ width: "auto", padding: "11px 24px", marginTop: "8px" }} disabled={loading}>
+            {loading ? <span className="spinner"></span> : "Add race"}
+          </button>
+        </form>
+      </div>
+
+      <div className="card">
+        <div className="card-title display">Upcoming races</div>
+        {races.length === 0 ? (
+          <div className="empty-state">No races on the calendar yet.</div>
+        ) : (
+          <table>
+            <thead><tr><th>Date</th><th>Distance</th><th>Goal</th></tr></thead>
+            <tbody>
+              {races
+                .slice()
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map((r, i) => (
+                  <tr key={r.id || i}>
+                    <td>{r.date}</td>
+                    <td className="mono">{r.distance} km</td>
+                    <td>{r.goal || "—"}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------
+// Chat
+// ---------------------------------------------------------------
+function Chat({ api }) {
+  const [thread, setThread] = useState([]); // local session thread; backend currently only returns the latest message
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [thread]);
+
+  async function send(e) {
+    e.preventDefault();
+    const message = input.trim();
+    if (!message) return;
+    setError("");
+    setThread(t => [...t, { role: "user", content: message }]);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await api("/chat", { method: "POST", body: JSON.stringify({ message }) });
+      const replyText = extractReplyText(res);
+      setThread(t => [...t, { role: "assistant", content: replyText }]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // The /chat endpoint's exact return shape has shifted during development
+  // (sometimes the raw Ollama response object, sometimes a plain dict).
+  // This defends against a few shapes rather than assuming one.
+  function extractReplyText(res) {
+    if (!res) return "(no reply)";
+    if (typeof res === "string") return res;
+    if (res.message && res.message.content) return res.message.content;
+    if (res.content) return res.content;
+    return JSON.stringify(res);
+  }
+
+  return (
+    <div className="card">
+      <div className="card-title display">Chat with your coach</div>
+      <div className="chat-window" ref={scrollRef}>
+        {thread.length === 0 && (
+          <div className="empty-state">Ask about your training, an upcoming race, or how you're feeling today.</div>
+        )}
+        {thread.map((m, i) => (
+          <div key={i} className={"msg " + m.role}>
+            <span className="msg-role">{m.role === "user" ? "You" : "Sentinel"}</span>
+            {m.content}
+          </div>
+        ))}
+        {loading && (
+          <div className="msg assistant"><span className="spinner" style={{ borderTopColor: "var(--charcoal)", borderColor: "rgba(27,29,31,0.25)" }}></span></div>
+        )}
+      </div>
+      {error && <div className="error-banner">{error}</div>}
+      <form className="chat-input-row" onSubmit={send}>
+        <textarea
+          placeholder="Type a message…"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(e); } }}
+        />
+        <button className="btn-primary" style={{ width: "auto", padding: "0 22px" }} disabled={loading}>Send</button>
+      </form>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------
+// App shell
+// ---------------------------------------------------------------
+const NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", lane: "01" },
+  { key: "workout", label: "Log workout", lane: "02" },
+  { key: "metrics", label: "Log metrics", lane: "03" },
+  { key: "races", label: "Races", lane: "04" },
+  { key: "chat", label: "Chat", lane: "05" },
+];
+
+function Shell({ athlete, api, onSignOut }) {
+  const [view, setView] = useState("dashboard");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [prediction, setPrediction] = useState(null);
+
+  useEffect(() => {
+    api("/predict", { method: "POST" }).then(setPrediction).catch(() => {});
+  }, [api, view, refreshKey]);
+
+  const band = riskBand(prediction ? prediction.injury_risk_probability : null);
+
+  return (
+    <div className="shell">
+      <nav className="rail">
+        <div className="rail-brand">
+          <div className="brand-row">
+            <span className="brand-mark"></span>
+            <span className="display brand-title">Sentinel</span>
+          </div>
+        </div>
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.key}
+            className={"nav-item" + (view === item.key ? " active" : "")}
+            onClick={() => setView(item.key)}
+          >
+            <span className="nav-lane-num mono">{item.lane}</span>
+            {item.label}
+          </button>
+        ))}
+        <div className="rail-footer">
+          <div style={{ fontSize: "12px", color: "#C9C6BE", marginBottom: "8px" }}>{athlete?.name || athlete?.email}</div>
+          <button className="signout" onClick={onSignOut}>Sign out</button>
+        </div>
+      </nav>
+      <main className="main">
+        <div className="topbar">
+          <h1 className="display" style={{ fontSize: "22px" }}>{NAV_ITEMS.find(n => n.key === view)?.label}</h1>
+          <span className={"risk-pill " + band.cls}>
+            <span className="risk-dot"></span>{band.label}
+          </span>
+        </div>
+
+        {view === "dashboard" && <Dashboard api={api} key={refreshKey} />}
+        {view === "workout" && <WorkoutForm api={api} />}
+        {view === "metrics" && <MetricsForm api={api} />}
+        {view === "races" && <RaceForm api={api} />}
+        {view === "chat" && <Chat api={api} />}
+      </main>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------
+// Root
+// ---------------------------------------------------------------
+function App() {
+  const [token, setToken] = useState(() => localStorage.getItem("sentinel_token"));
+  const [athlete, setAthlete] = useState(null);
+  const [bootError, setBootError] = useState("");
+
+  const handleSignOut = useCallback(() => {
+    localStorage.removeItem("sentinel_token");
+    setToken(null);
+    setAthlete(null);
+  }, []);
+
+  const api = useApi(token, handleSignOut);
+
+  useEffect(() => {
+    if (!token) return;
+    api("/athlete/me", { method: "GET" })
+      .then(setAthlete)
+      .catch(err => setBootError(err.message));
+  }, [token, api]);
+
+  function handleAuthed(newToken) {
+    localStorage.setItem("sentinel_token", newToken);
+    setToken(newToken);
+  }
+
+  if (!token) return <AuthScreen onAuthed={handleAuthed} />;
+
+  if (bootError) {
+    return (
+      <div className="auth-wrap">
+        <div className="auth-card">
+          <div className="error-banner">{bootError}</div>
+          <button className="btn-primary" onClick={handleSignOut}>Back to sign in</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!athlete) {
+    return <div className="auth-wrap"><span className="mono">Loading…</span></div>;
+  }
+
+  return <Shell athlete={athlete} api={api} onSignOut={handleSignOut} />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

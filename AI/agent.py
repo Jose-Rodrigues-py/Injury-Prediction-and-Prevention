@@ -50,13 +50,13 @@ async def run_agent(message: str | None, user_id: int, db):
 
     if message is None:
         prediction = await make_prediction(user_id)
-        system_message = f"{SYSTEM_PROMPT}\n\nToday's date:\n {date.today()}\n\nWhat you must do:\nYou User profile:\n{context}\n\nCurrent prediction:\n{prediction}"
+        system_message = f"{SYSTEM_PROMPT}\n\nToday's date:\n {date.today()}\n\nUser profile:\n{context}\n\nCurrent prediction:\n{prediction}"
         print("SYSTEM MESSAGE:\n", system_message)
 
         messages = [
             {"role": "system", "content": system_message},
             *history_dicts,
-            {"role": "user", "content": "Based on my current training data and injury risk, what should I focus on on the next workout?"}
+            {"role": "user", "content": "Based on my current training data and injury risk, what should I focus on the next workout?"}
         ]
 
         response = await client.chat( model='qwen2.5:3b', messages= messages, 

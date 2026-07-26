@@ -38,23 +38,22 @@ async def signup(user: SignUp, db: AsyncSession = Depends(get_db)):
         return {"message": "user created",
                 "data": {"name": user.name, "email": user.email}}
 
+class SignIn(BaseModel):
+    email: EmailStr
+    password: str
+
 @router.post("/signin")
-async def signin(data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)): 
-    email_input = data.username
-    password = data.password
-
-    check = await db.execute(select(Athlete).where(Athlete.name == email_input))    
+async def signin(data: SignIn, db: AsyncSession = Depends(get_db)):
+    check = await db.execute(select(Athlete).where(Athlete.email == data.email))
     athlete = check.scalar_one_or_none()
-
-    if not athlete: 
-        raise HTTPException(status_code=401, detail = "User not signed up")
-    else: 
-        if not verify(password, athlete.hashed_pwd):
-            raise HTTPException(status_code=401, detail="Wrong Password")
-        else: 
-            token = create_token({"sub": str(athlete.id)})
-            return {"message": "user signed in successfully",
-                    "access_token": token, 
-                    "token_type": "bearer"
-                    }
-
+    if not athlete:
+        raise HTTPException(status_code=401, detail="User not signed up")
+    if not verify(data.password, athlete.hashed_pwd):
+        raise HTTPException(status_code=401, detail="Wrong Password")
+    token = create_token({"sub": str(athlete.id)})
+    return {
+        "message": "user signed in successfully",
+        "access_token": token,
+        "token_type": "bearer",
+        "data": {"name": athlete.name, "email": athlete.email},  # add this so onAuthed(res.data) works
+    }
