@@ -24,7 +24,7 @@ async def get_last_message(user: Athlete = Depends(get_current_user), db: AsyncS
     message = res.scalar_one_or_none()
 
     if not message: 
-        return "User has no chat history. Try sending a message first."
+        return "User has no chat history. Try sending a message first." # this line was flagged
 
     return message
 

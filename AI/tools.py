@@ -16,7 +16,7 @@ async def make_prediction(athlete_id: int):
         await redis_client.set(f"risk:{athlete_id}", json.dumps(result))
         return result
 
-async def get_message_history(user_id: int, limit: int = 20) -> list[Message]:
+async def get_message_history(user_id: int, limit: int = 5) -> list[Message]:
     async with AsyncSessionLocal() as db:
         query = (select(Message).where(Message.athlete_id == user_id).order_by(Message.created_at.desc()).limit(limit))
         result = await db.execute(query)
@@ -43,9 +43,9 @@ async def access_db(user_id: int):
         return json.loads(cached)
 
     async with AsyncSessionLocal() as db:
-        workout_result = await db.execute(select(Workout).where(Workout.athlete_id == user_id).order_by(Workout.date.desc()).limit(42))
-        race_result = await db.execute(select(Race).where(Race.athlete_id == user_id).order_by(Race.date.desc()).limit(5))
-        metrics_result = await db.execute(select(HealthMetrics).where(HealthMetrics.athlete_id == user_id).order_by(HealthMetrics.created_at.desc()).limit(42))
+        workout_result = await db.execute(select(Workout).where(Workout.athlete_id == user_id).order_by(Workout.date.desc()).limit(10))
+        race_result = await db.execute(select(Race).where(Race.athlete_id == user_id).order_by(Race.date.asc()).limit(2))
+        metrics_result = await db.execute(select(HealthMetrics).where(HealthMetrics.athlete_id == user_id).order_by(HealthMetrics.created_at.desc()).limit(10))
 
         ans = {
             "workouts": [

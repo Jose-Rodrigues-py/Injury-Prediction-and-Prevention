@@ -6,7 +6,7 @@ from rag import create_collection, ingest_file
 from pypdf import PdfReader, PdfWriter
 
 writer = PdfWriter()
-for filename in ["faster_road_racing.pdf", "Training_Essentials_for_Ultrarunning.pdf", "Advanced_marathoning.pdf"]:
+for filename in ["Advanced_marathoning.pdf"]: # was supposed to be more thorough
     reader = PdfReader(filename)
     for page in reader.pages:
         writer.add_page(page)

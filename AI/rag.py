@@ -55,7 +55,7 @@ def ingest_file(text, collection: str):
 
     qdrant.upsert(collection_name=collection, points=points) # this here
 
-def search(query, collection: str, top_k=5):
+def search(query, collection: str, top_k=3):
     query_vector = embed([query])[0]
     
     results = qdrant.query_points(
