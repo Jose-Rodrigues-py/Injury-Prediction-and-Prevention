@@ -11,19 +11,28 @@ to predict the likelihood of injury - presented as a percentage of healthiness (
 This model becomes a tool to an AI agent that can interact with the user, proposing different workouts, techniques and answering questions the user may have.
 To prevent halucinations and bad information, the agent was fed some of the best books in the running space, with a RAG system. 
 
+### Important Note: 
+To keep costs low I chose to use a local model (Ollama qwen2.5:3B).
+This model has known limitations, namely hallucinations and low accuracy. A bigger, and thus more reliable model was also tested, (Ollama qwen2.5:7b) and the results were indeed better (more personalized and real), but my machine struggled to run it, forcing me to use the smallest model instead.
+In conclusion, the app is functional, but not as one would have liked.
+
+The frontend was done by AI.
+
 # Project Structure
 SummerProject/
 |
 |- AI/
-    |-agent.py
-    |-rag.py
-    |-tools.py 
+    |-agent.py                 -> AI's main loop
+    |-rag.py                   
+    |-ingest.py                -> takes the pdfs and creates one big file, to then save on     |                                    the vector database
+    |-tools.py                 -> all the tools the AI needs to work
+    |-advanced marathoning.pdf -> the book used to give context
 |-ML/
-    |-gen_data.py
-    |-train.py
-    |-synthetic_data.csv
+    |-gen_data.py               -> generates synthetic data to feed the model
+    |-train.py                  -> cleans data, trains the model, predicts result
+    |-synthetic_data.csv        -> the result of gen_data
     |-injury_risk_model.pkl
-    |-session_type_encoder.pkl
+    |-session_type_encoder.pkl    
 |-alembic/
 |- routers/
     |-ai_agent.py
@@ -35,13 +44,14 @@ SummerProject/
     |workouts.py
   |
   |-main.py
-  |-models.py
-  |-ml_features.py
-  |-cache.py
+  |-models.py          -> the tables in the database
+  |-ml_features.py     -> uses features.py to compute the features for the ML model,         |                              accesses db
+  |-cache.py           -> initiates the redis client
   |-database.py
-  |-predict.py
-  |-security.py
-  |-worker.py
+  |-predict.py         -> Gets features, calls model and generates a prediction
+  |-security.py        -> password hashing etc
+  |-worker.py          -> handles background jobs (Arq)
+  |-features.py        -> computes the rolling features for the athlete, fed into the ML                                 model
 
 # Tech Stack
 
